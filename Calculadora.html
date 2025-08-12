@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Fierro y Focos</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styles for Inter font */
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
+    <div class="bg-white p-6 md:p-8 rounded-xl shadow-lg w-full max-w-lg">
+        <h1 class="text-2xl md:text-3xl font-bold text-center text-gray-800 mb-6">
+            🛠️ Calculadora de Fierro y Focos para Letreros
+        </h1>
+
+        <div class="space-y-4">
+            <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-medium mb-2">
+                    Tipo de Letrero:
+                </label>
+                <div class="flex space-x-4">
+                    <label class="inline-flex items-center">
+                        <input type="radio" name="tipoLetrero" value="luminoso" checked
+                               class="form-radio text-blue-600 h-4 w-4">
+                        <span class="ml-2 text-gray-700">Luminoso</span>
+                    </label>
+                    <label class="inline-flex items-center">
+                        <input type="radio" name="tipoLetrero" value="bastidor"
+                               class="form-radio text-blue-600 h-4 w-4">
+                        <span class="ml-2 text-gray-700">Bastidor</span>
+                    </label>
+                </div>
+            </div>
+
+            <div>
+                <label for="ancho" class="block text-gray-700 text-sm font-medium mb-1">
+                    Ancho del letrero (metros):
+                </label>
+                <input type="number" id="ancho" placeholder="Ej: 3.5"
+                       class="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-150 ease-in-out"
+                       min="0" step="0.1">
+            </div>
+
+            <div>
+                <label for="alto" class="block text-gray-700 text-sm font-medium mb-1">
+                    Alto del letrero (metros):
+                </label>
+                <input type="number" id="alto" placeholder="Ej: 2.0"
+                       class="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-150 ease-in-out"
+                       min="0" step="0.1">
+            </div>
+
+            <!-- Costos (Solo para tipo Luminoso) -->
+            <div id="costoInputs" class="space-y-4 luminoso-only">
+                <div>
+                    <label for="costoFierroBarra" class="block text-gray-700 text-sm font-medium mb-1">
+                        Costo por barra de fierro (6m):
+                    </label>
+                    <input type="number" id="costoFierroBarra" placeholder="Ej: 100"
+                           class="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-150 ease-in-out"
+                           min="0" step="0.01">
+                </div>
+                <div>
+                    <label for="costoFoco120cm" class="block text-gray-700 text-sm font-medium mb-1">
+                        Costo por foco de 1.2m:
+                    </label>
+                    <input type="number" id="costoFoco120cm" placeholder="Ej: 50"
+                           class="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-150 ease-in-out"
+                           min="0" step="0.01">
+                </div>
+                <div>
+                    <label for="costoFoco60cm" class="block text-gray-700 text-sm font-medium mb-1">
+                        Costo por foco de 0.6m:
+                    </label>
+                    <input type="number" id="costoFoco60cm" placeholder="Ej: 30"
+                           class="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-150 ease-in-out"
+                           min="0" step="0.01">
+                </div>
+            </div>
+
+            <button id="calcularBtn"
+                    class="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-300 transition duration-300 ease-in-out shadow-md">
+                Calcular Material
+            </button>
+        </div>
+
+        <div id="resultados" class="mt-8 p-6 bg-blue-50 rounded-xl border border-blue-200 hidden">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4">Resultados del Cálculo:</h2>
+            <div class="space-y-3 text-gray-700">
+                <p><strong>Tipo de Letrero:</strong> <span id="tipoLetreroResultado" class="font-mono text-blue-800"></span></p>
+                <p class="luminoso-only"><strong>Perímetro Frontal:</strong> <span id="perimetroFrontal" class="font-mono text-blue-800"></span> metros</p>
+                <p class="luminoso-only"><strong>Perímetro Trasero:</strong> <span id="perimetroTrasero" class="font-mono text-blue-800"></span> metros</p>
+                <p class="bastidor-only hidden"><strong>Perímetro Exterior:</strong> <span id="perimetroBastidor" class="font-mono text-blue-800"></span> metros</p>
+
+                <p><strong>Costillas Verticales (cantidad):</strong> <span id="numCostillasVerticales" class="font-mono text-blue-800"></span></p>
+                <p><strong>Fierro para Costillas Verticales:</strong> <span id="fierroCostillasVerticales" class="font-mono text-blue-800"></span> metros</p>
+                <p><strong>Costillas Horizontales (cantidad):</strong> <span id="numCostillasHorizontales" class="font-mono text-blue-800"></span></p>
+                <p><strong>Fierro para Costillas Horizontales:</strong> <span id="fierroCostillasHorizontales" class="font-mono text-blue-800"></span> metros</p>
+
+                <p class="luminoso-only"><strong>Uniones Totales (cantidad):</strong> <span id="unionesTotales" class="font-mono text-blue-800"></span></p>
+                <p class="luminoso-only"><strong>Fierro para Uniones:</strong> <span id="fierroUniones" class="font-mono text-blue-800"></span> metros</p>
+                
+                <hr class="my-4 border-blue-300">
+                <p class="text-lg font-bold text-gray-900">
+                    Total Fierro Necesario: <span id="totalFierro" class="text-blue-700 text-xl"></span> metros
+                </p>
+                <p class="text-lg font-bold text-gray-900">
+                    Barras de 6m Necesarias: <span id="numBarras" class="text-blue-700 text-xl"></span> barras
+                </p>
+
+                <!-- Resultados de Focos y Costos (Solo para Luminoso) -->
+                <div class="luminoso-only">
+                    <hr class="my-4 border-blue-300">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-2">Cálculo de Focos:</h3>
+                    <p class="text-sm text-gray-600 mb-2">
+                        *Basado en filas horizontales, con espaciado mínimo de 0.3m vertical.*
+                    </p>
+                    <p><strong>Focos de 1.2m:</strong> <span id="focos120cm" class="font-mono text-blue-800"></span> unidades</p>
+                    <p><strong>Focos de 0.6m:</strong> <span id="focos60cm" class="font-mono text-blue-800"></span> unidades</p>
+                </div>
+
+                <div class="luminoso-only">
+                    <hr class="my-4 border-blue-300">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-2">Costos Totales:</h3>
+                    <p><strong>Costo Total de Fierro:</strong> <span id="costoTotalFierro" class="font-mono text-green-700 font-bold"></span></p>
+                    <p><strong>Costo Total de Focos:</strong> <span id="costoTotalFocos" class="font-mono text-green-700 font-bold"></span></p>
+                </div>
+            </div>
+        </div>
+
+        <div id="errorMensaje" class="mt-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg hidden">
+            Por favor, ingresa valores válidos para el Ancho y el Alto del letrero, y costos (si aplica).
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const anchoInput = document.getElementById('ancho');
+            const altoInput = document.getElementById('alto');
+            const calcularBtn = document.getElementById('calcularBtn');
+            const resultadosDiv = document.getElementById('resultados');
+            const errorMensajeDiv = document.getElementById('errorMensaje');
+            const tipoLetreroRadios = document.querySelectorAll('input[name="tipoLetrero"]');
+            const costoInputsDiv = document.getElementById('costoInputs');
+
+            // Inputs de costos
+            const costoFierroBarraInput = document.getElementById('costoFierroBarra');
+            const costoFoco120cmInput = document.getElementById('costoFoco120cm');
+            const costoFoco60cmInput = document.getElementById('costoFoco60cm');
+
+            // Elementos para mostrar los resultados
+            const tipoLetreroResultadoSpan = document.getElementById('tipoLetreroResultado');
+            const perimetroFrontalSpan = document.getElementById('perimetroFrontal');
+            const perimetroTraseroSpan = document.getElementById('perimetroTrasero');
+            const perimetroBastidorSpan = document.getElementById('perimetroBastidor');
+            const numCostillasVerticalesSpan = document.getElementById('numCostillasVerticales');
+            const fierroCostillasVerticalesSpan = document.getElementById('fierroCostillasVerticales');
+            const numCostillasHorizontalesSpan = document.getElementById('numCostillasHorizontales');
+            const fierroCostillasHorizontalesSpan = document.getElementById('fierroCostillasHorizontales');
+            const unionesTotalesSpan = document.getElementById('unionesTotales');
+            const fierroUnionesSpan = document.getElementById('fierroUniones');
+            const totalFierroSpan = document.getElementById('totalFierro');
+            const numBarrasSpan = document.getElementById('numBarras');
+            const focos120cmSpan = document.getElementById('focos120cm');
+            const focos60cmSpan = document.getElementById('focos60cm');
+            const costoTotalFierroSpan = document.getElementById('costoTotalFierro');
+            const costoTotalFocosSpan = document.getElementById('costoTotalFocos');
+
+            const luminosoOnlyElements = document.querySelectorAll('.luminoso-only');
+            const bastidorOnlyElements = document.querySelectorAll('.bastidor-only');
+
+
+            const TAMANO_UNION_METROS = 0.2; // 20 cm
+            const LARGO_BARRA_FIERRO_METROS = 6;
+            const UNIONES_ESQUINA_FIJAS = 4;
+            const LARGO_FOCO_120CM = 1.2;
+            const LARGO_FOCO_60CM = 0.6;
+            const ESPACIADO_FILA_FOCO_MIN = 0.3; // 30cm (0.3m)
+
+            /**
+             * Calcula el número de costillas basado en una dimensión (ancho o alto).
+             * Sigue la regla: <=1.5m -> 0, >1.5m a <=2.5m -> 1, etc.
+             * @param {number} dimension El ancho o alto en metros.
+             * @returns {number} El número de costillas.
+             */
+            function calcularCostillas(dimension) {
+                if (dimension <= 1.5) {
+                    return 0;
+                }
+                // Cada 1 metro adicional después de 1.5m suma 1 costilla
+                // Math.ceil(dimension - 1.5) implementa la lógica de >X.5m = +1 costilla
+                return Math.ceil(dimension - 1.5);
+            }
+
+            /**
+             * Calcula la cantidad de focos de 1.2m y 0.6m necesarios.
+             * Se asume una disposición en filas horizontales.
+             * @param {number} ancho El ancho del letrero en metros.
+             * @param {number} alto El alto del letrero en metros.
+             * @returns {object} Un objeto con las cantidades de focos.
+             */
+            function calcularFocos(ancho, alto) {
+                let totalFocos120cm = 0;
+                let totalFocos60cm = 0;
+
+                // Calcular el número de filas de focos
+                // Mínimo 1 fila si el alto lo permite, de lo contrario 0
+                const numFilas = Math.max(0, Math.floor(alto / ESPACIADO_FILA_FOCO_MIN));
+                
+                if (numFilas > 0) {
+                    // Calcular focos por fila
+                    const focos120cmPorFila = Math.floor(ancho / LARGO_FOCO_120CM);
+                    const anchoRestante = ancho % LARGO_FOCO_120CM;
+                    const focos60cmPorFila = (anchoRestante >= LARGO_FOCO_60CM) ? 1 : 0;
+
+                    totalFocos120cm = focos120cmPorFila * numFilas;
+                    totalFocos60cm = focos60cmPorFila * numFilas;
+                }
+
+                return {
+                    focos120cm: totalFocos120cm,
+                    focos60cm: totalFocos60cm
+                };
+            }
+
+
+            /**
+             * Muestra u oculta elementos específicos para el tipo de letrero seleccionado.
+             * @param {string} tipo 'luminoso' o 'bastidor'.
+             */
+            function toggleResultVisibility(tipo) {
+                if (tipo === 'luminoso') {
+                    luminosoOnlyElements.forEach(el => el.classList.remove('hidden'));
+                    bastidorOnlyElements.forEach(el => el.classList.add('hidden'));
+                    costoInputsDiv.classList.remove('hidden'); // Mostrar inputs de costos para luminoso
+                } else { // bastidor
+                    luminosoOnlyElements.forEach(el => el.classList.add('hidden'));
+                    bastidorOnlyElements.forEach(el => el.classList.remove('hidden'));
+                    costoInputsDiv.classList.add('hidden'); // Ocultar inputs de costos para bastidor
+                }
+            }
+
+            // Añadir listener para los cambios en el tipo de letrero
+            tipoLetreroRadios.forEach(radio => {
+                radio.addEventListener('change', () => {
+                    toggleResultVisibility(radio.value);
+                    resultadosDiv.classList.add('hidden'); // Ocultar resultados al cambiar tipo
+                    errorMensajeDiv.classList.add('hidden'); // Ocultar errores
+                });
+            });
+
+            calcularBtn.addEventListener('click', () => {
+                const ancho = parseFloat(anchoInput.value);
+                const alto = parseFloat(altoInput.value);
+                const tipoLetreroSeleccionado = document.querySelector('input[name="tipoLetrero"]:checked').value;
+
+                // Validación de entradas
+                if (isNaN(ancho) || isNaN(alto) || ancho <= 0 || alto <= 0) {
+                    resultadosDiv.classList.add('hidden');
+                    errorMensajeDiv.classList.remove('hidden');
+                    return;
+                } else {
+                    errorMensajeDiv.classList.add('hidden');
+                }
+
+                let totalFierro = 0;
+                let numBarras = 0;
+                let focosCalculados = { focos120cm: 0, focos60cm: 0 };
+                let costoTotalFierro = 0;
+                let costoTotalFocos = 0;
+
+                tipoLetreroResultadoSpan.textContent = tipoLetreroSeleccionado === 'luminoso' ? 'Luminoso' : 'Bastidor';
+                toggleResultVisibility(tipoLetreroSeleccionado); // Asegurar visibilidad correcta
+
+                if (tipoLetreroSeleccionado === 'luminoso') {
+                    // Lógica para Letrero Luminoso
+                    const perimetroFrontal = 2 * (alto + ancho);
+                    const perimetroTrasero = 2 * (alto + ancho);
+
+                    const numCostillasVerticales = calcularCostillas(ancho);
+                    const numCostillasHorizontales = calcularCostillas(alto);
+
+                    const fierroCostillasVerticales = numCostillasVerticales * alto;
+                    const fierroCostillasHorizontales = numCostillasHorizontales * ancho;
+
+                    // CAMBIO AQUÍ: Cálculo de uniones
+                    const unionesTotales = (numCostillasVerticales * 2) + (numCostillasHorizontales * 2) + UNIONES_ESQUINA_FIJAS;
+                    const fierroUniones = unionesTotales * TAMANO_UNION_METROS;
+
+                    totalFierro = perimetroFrontal + perimetroTrasero +
+                                   fierroCostillasVerticales + fierroCostillasHorizontales +
+                                   fierroUniones;
+                    numBarras = Math.ceil(totalFierro / LARGO_BARRA_FIERRO_METROS);
+
+                    focosCalculados = calcularFocos(ancho, alto);
+
+                    // Obtener costos
+                    const costoFierroBarra = parseFloat(costoFierroBarraInput.value);
+                    const costoFoco120cm = parseFloat(costoFoco120cmInput.value);
+                    const costoFoco60cm = parseFloat(costoFoco60cmInput.value);
+
+                    // Validar costos (si están vacíos o no son números, se asumen 0)
+                    const costoFierroValido = !isNaN(costoFierroBarra) && costoFierroBarra >= 0 ? costoFierroBarra : 0;
+                    const costoFoco120Valido = !isNaN(costoFoco120cm) && costoFoco120cm >= 0 ? costoFoco120cm : 0;
+                    const costoFoco60Valido = !isNaN(costoFoco60cm) && costoFoco60cm >= 0 ? costoFoco60cm : 0;
+
+                    costoTotalFierro = numBarras * costoFierroValido;
+                    costoTotalFocos = (focosCalculados.focos120cm * costoFoco120Valido) +
+                                       (focosCalculados.focos60cm * costoFoco60Valido);
+
+                    // Mostrar resultados específicos de Luminoso
+                    perimetroFrontalSpan.textContent = perimetroFrontal.toFixed(2);
+                    perimetroTraseroSpan.textContent = perimetroTrasero.toFixed(2);
+                    numCostillasVerticalesSpan.textContent = numCostillasVerticales;
+                    fierroCostillasVerticalesSpan.textContent = fierroCostillasVerticales.toFixed(2);
+                    numCostillasHorizontalesSpan.textContent = numCostillasHorizontales;
+                    fierroCostillasHorizontalesSpan.textContent = fierroCostillasHorizontales.toFixed(2);
+                    unionesTotalesSpan.textContent = unionesTotales;
+                    fierroUnionesSpan.textContent = fierroUniones.toFixed(2);
+                    focos120cmSpan.textContent = focosCalculados.focos120cm;
+                    focos60cmSpan.textContent = focosCalculados.focos60cm;
+                    costoTotalFierroSpan.textContent = `$${costoTotalFierro.toFixed(2)}`;
+                    costoTotalFocosSpan.textContent = `$${costoTotalFocos.toFixed(2)}`;
+
+                } else { // bastidor
+                    // Lógica para Letrero Bastidor
+                    const perimetroExterior = 2 * (alto + ancho);
+
+                    const numCostillasVerticales = calcularCostillas(ancho);
+                    const numCostillasHorizontales = calcularCostillas(alto);
+
+                    const fierroCostillasVerticales = numCostillasVerticales * alto;
+                    const fierroCostillasHorizontales = numCostillasHorizontales * ancho;
+
+                    totalFierro = perimetroExterior + fierroCostillasVerticales + fierroCostillasHorizontales;
+                    numBarras = Math.ceil(totalFierro / LARGO_BARRA_FIERRO_METROS);
+
+                    // Ocultar elementos no relevantes para bastidor y mostrar específicos
+                    perimetroBastidorSpan.textContent = perimetroExterior.toFixed(2);
+                    numCostillasVerticalesSpan.textContent = numCostillasVerticales;
+                    fierroCostillasVerticalesSpan.textContent = fierroCostillasVerticales.toFixed(2);
+                    numCostillasHorizontalesSpan.textContent = numCostillasHorizontales;
+                    fierroCostillasHorizontalesSpan.textContent = fierroCostillasHorizontales.toFixed(2);
+                }
+
+                // Mostrar resultados comunes
+                totalFierroSpan.textContent = totalFierro.toFixed(2);
+                numBarrasSpan.textContent = numBarras;
+                resultadosDiv.classList.remove('hidden');
+            });
+
+            // Establecer visibilidad inicial al cargar la página (para el tipo seleccionado por defecto)
+            toggleResultVisibility(document.querySelector('input[name="tipoLetrero"]:checked').value);
+        });
+    </script>
+</body>
+</html>
